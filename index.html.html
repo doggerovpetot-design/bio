@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Биология · Карточки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+background:#07080f;
+color:#eef1fa;
+min-height:100vh;
+overflow-x:hidden;
+-webkit-font-smoothing:antialiased;
+position:relative;
+}
+
+/* ---------- ФОН ---------- */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(110px);opacity:.55;will-change:transform}
+.b1{width:52vmax;height:52vmax;background:radial-gradient(circle at 30% 30%,#5468ff,#2a1d78);
+top:-18vmax;left:-14vmax;animation:drift1 24s ease-in-out infinite}
+.b2{width:44vmax;height:44vmax;background:radial-gradient(circle at 30% 30%,#ff4fa3,#6b1a5c);
+bottom:-16vmax;right:-12vmax;animation:drift2 28s ease-in-out infinite}
+.b3{width:36vmax;height:36vmax;background:radial-gradient(circle at 30% 30%,#1de0c2,#075a68);
+top:38%;left:58%;animation:drift3 32s ease-in-out infinite}
+@keyframes drift1{50%{transform:translate(7vmax,6vmax) scale(1.12)}}
+@keyframes drift2{50%{transform:translate(-8vmax,-5vmax) scale(1.18)}}
+@keyframes drift3{50%{transform:translate(-8vmax,6vmax) scale(.92)}}
+.grid-overlay{
+position:absolute;inset:0;
+background-image:
+linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+background-size:54px 54px;
+-webkit-mask-image:radial-gradient(ellipse at center,#000 10%,transparent 75%);
+mask-image:radial-gradient(ellipse at center,#000 10%,transparent 75%);
+}
+
+/* ---------- ОБЩЕЕ ---------- */
+.stage{
+position:relative;z-index:1;
+min-height:100vh;
+display:flex;flex-direction:column;
+align-items:center;justify-content:center;
+padding:28px 18px;
+}
+.screen{
+width:min(700px,94vw);
+display:none;
+animation:screenIn .55s cubic-bezier(.2,.85,.25,1) both;
+}
+.screen.active{display:block}
+@keyframes screenIn{
+from{opacity:0;transform:translateY(22px) scale(.98)}
+to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* ---------- СТАРТ ---------- */
+.hero{text-align:center;display:flex;flex-direction:column;align-items:center;gap:26px}
+.logo-mark{
+width:84px;height:84px;border-radius:26px;
+display:grid;place-items:center;
+font-weight:800;font-size:38px;color:#fff;
+background:linear-gradient(135deg,#6d7bff 0%,#b06bff 60%,#ff5ea8 120%);
+box-shadow:0 22px 55px -18px #6d7bff,0 0 0 1px rgba(255,255,255,.1) inset;
+animation:pulse 4.5s ease-in-out infinite;
+}
+@keyframes pulse{50%{transform:translateY(-6px) rotate(-3deg)}}
+.hero h1{
+font-size:clamp(34px,7vw,56px);font-weight:800;
+letter-spacing:-.035em;line-height:1.02;
+background:linear-gradient(180deg,#ffffff 20%,#aab3d4);
+-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p{font-size:clamp(14px,2.4vw,16px);color:#9aa2bd;max-width:440px;line-height:1.6}
+
+/* ---------- КНОПКИ ---------- */
+.btn{
+font-family:inherit;font-size:15px;font-weight:600;letter-spacing:-.01em;
+border:none;cursor:pointer;color:#fff;
+border-radius:18px;
+display:inline-flex;align-items:center;justify-content:center;gap:10px;
+transition:transform .3s cubic-bezier(.2,.85,.25,1),box-shadow .3s,background .3s;
+-webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.97)}
+
+.btn-primary{
+padding:18px 54px;font-size:17px;
+background:linear-gradient(135deg,#6d7bff,#a259ff 60%,#ff5ea8);
+background-size:200% 200%;
+box-shadow:0 22px 48px -18px #6d7bff,0 0 0 1px rgba(255,255,255,.14) inset;
+animation:shift 8s ease infinite;
+}
+@keyframes shift{50%{background-position:100% 50%}}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 30px 60px -18px #8b6bff}
+
+.btn-ghost{
+padding:14px 24px;font-size:14px;
+background:rgba(255,255,255,.06);
+border:1px solid rgba(255,255,255,.1);
+color:#cfd5e8;
+}
+.btn-ghost:hover{background:rgba(255,255,255,.11);transform:translateY(-2px)}
+
+/* ---------- МЕНЮ ---------- */
+.menu-head{text-align:center;margin-bottom:34px}
+.menu-head h2{
+font-size:clamp(24px,4.5vw,34px);font-weight:750;letter-spacing:-.03em;
+background:linear-gradient(180deg,#fff,#b5bdd9);
+-webkit-background-clip:text;background-clip:text;color:transparent;
+margin-bottom:8px;
+}
+.menu-head p{font-size:14px;color:#8f97b4}
+
+.modes{display:grid;gap:16px}
+.mode{
+position:relative;
+display:flex;align-items:center;gap:18px;
+padding:22px 24px;
+border-radius:22px;
+background:linear-gradient(150deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+border:1px solid rgba(255,255,255,.1);
+cursor:pointer;overflow:hidden;
+transition:transform .35s cubic-bezier(.2,.85,.25,1),border-color .35s,background .35s;
+text-align:left;color:inherit;font-family:inherit;
+box-shadow:0 20px 42px -30px #000;
+}
+.mode:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.24)}
+.mode::before{
+content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+background:linear-gradient(180deg,#6d7bff,#b06bff);
+opacity:0;transition:opacity .35s;
+}
+.mode:hover::before{opacity:1}
+.mode-ic{
+width:54px;height:54px;border-radius:16px;flex-shrink:0;
+display:grid;place-items:center;color:#fff;
+box-shadow:0 12px 26px -12px currentColor;
+}
+.mode-ic svg{width:26px;height:26px}
+.m1 .mode-ic{background:linear-gradient(135deg,#6d7bff,#9a63ff);color:#6d7bff}
+.m2 .mode-ic{background:linear-gradient(135deg,#ff7a59,#ff4fa3);color:#ff5e8a}
+.m3 .mode-ic{background:linear-gradient(135deg,#1de0c2,#2ea8ff);color:#1de0c2}
+.mode-txt{flex:1}
+.mode-txt h3{font-size:16.5px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
+.mode-txt p{font-size:13px;color:#8f97b4;line-height:1.45}
+.mode-arrow{color:#6b7394;flex-shrink:0;transition:transform .35s,color .35s}
+.mode:hover .mode-arrow{transform:translateX(5px);color:#fff}
+
+/* ---------- ШАПКА ИГРЫ ---------- */
+.game-head{
+display:flex;align-items:center;justify-content:space-between;
+gap:14px;margin-bottom:20px;
+}
+.back-btn{
+display:inline-flex;align-items:center;gap:8px;
+padding:10px 16px;border-radius:14px;font-size:13px;font-weight:600;
+background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);
+color:#cfd5e8;cursor:pointer;font-family:inherit;
+transition:background .3s,transform .3s,color .3s;
+}
+.back-btn:hover{background:rgba(255,255,255,.11);color:#fff;transform:translateX(-2px)}
+.back-btn svg{width:14px;height:14px}
+
+.progress-wrap{display:flex;align-items:center;gap:12px;flex:1;max-width:340px}
+.progress-bar{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.progress-fill{
+height:100%;width:0;border-radius:99px;
+background:linear-gradient(90deg,#6d7bff,#b06bff,#1de0c2);
+box-shadow:0 0 18px -2px #7a7bff;
+transition:width .5s cubic-bezier(.3,.8,.3,1);
+}
+.counter{font-size:12.5px;color:#8f97b4;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- QUIZLET ---------- */
+.card-slide{
+width:100%;
+height:clamp(280px,50vh,380px);
+perspective:1500px;
+margin-bottom:22px;
+}
+.card{
+position:relative;width:100%;height:100%;
+transform-style:preserve-3d;
+transition:transform .75s cubic-bezier(.2,.85,.25,1);
+cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;
+}
+.card.flipped{transform:rotateY(180deg)}
+.card-face{
+position:absolute;inset:0;
+border-radius:28px;
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+padding:56px 34px 52px;text-align:center;
+backface-visibility:hidden;-webkit-backface-visibility:hidden;
+border:1px solid rgba(255,255,255,.13);
+overflow:hidden;
+box-shadow:0 38px 70px -32px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.14);
+}
+.card-front{background:linear-gradient(150deg,#1c2244,#111528 60%,#0d1120)}
+.card-back{transform:rotateY(180deg);background:linear-gradient(150deg,#281c4c,#17102c 60%,#0d1120)}
+.card-front::before,.card-back::before{
+content:'';position:absolute;width:360px;height:360px;border-radius:50%;
+filter:blur(38px);pointer-events:none;
+}
+.card-front::before{background:radial-gradient(circle,rgba(109,123,255,.5),transparent 70%);top:-160px;right:-120px}
+.card-back::before{background:radial-gradient(circle,rgba(176,107,255,.45),transparent 70%);bottom:-160px;left:-120px}
+.badge{
+position:absolute;top:20px;left:22px;
+font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+color:#8b93ad;background:rgba(255,255,255,.06);
+padding:5px 11px;border-radius:99px;
+border:1px solid rgba(255,255,255,.07);
+}
+#quizlet-term{
+font-size:clamp(24px,5vw,38px);
+font-weight:700;letter-spacing:-.02em;line-height:1.15;
+background:linear-gradient(180deg,#ffffff,#b9c2dd);
+-webkit-background-clip:text;background-clip:text;color:transparent;
+max-height:80%;overflow-y:auto;padding:0 8px;
+}
+#quizlet-def{
+font-size:clamp(16px,3.4vw,22px);
+font-weight:500;line-height:1.45;color:#eef1fa;
+max-height:80%;overflow-y:auto;padding:0 8px;
+}
+.hint{
+position:absolute;bottom:18px;
+font-size:11.5px;color:#7b83a0;letter-spacing:.02em;
+}
+.controls{display:flex;gap:12px;align-items:center;justify-content:center}
+
+/* ---------- УСЛОЖНЁННЫЙ ---------- */
+.hard-question{
+font-size:clamp(16px,2.8vw,20px);
+font-weight:600;line-height:1.5;
+padding:28px 26px;border-radius:22px;
+background:linear-gradient(150deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+border:1px solid rgba(255,255,255,.1);
+margin-bottom:18px;
+min-height:110px;display:flex;align-items:center;justify-content:center;
+text-align:center;
+color:#eef1fa;
+}
+.timer-bar{
+height:8px;border-radius:99px;background:rgba(255,255,255,.08);
+overflow:hidden;margin-bottom:22px;
+}
+.timer-fill{
+height:100%;width:100%;border-radius:99px;
+background:linear-gradient(90deg,#1de0c2,#6d7bff,#ff5ea8);
+transition:width .1s linear;
+}
+.hard-options{display:grid;gap:12px}
+.hard-option{
+padding:18px 22px;border-radius:18px;
+background:rgba(255,255,255,.055);
+border:1px solid rgba(255,255,255,.1);
+color:#eef1fa;font-size:15px;font-weight:500;
+cursor:pointer;font-family:inherit;text-align:left;
+transition:transform .25s,background .25s,border-color .25s,box-shadow .25s;
+-webkit-tap-highlight-color:transparent;
+}
+.hard-option:hover:not(:disabled){
+transform:translateY(-2px);
+background:rgba(255,255,255,.1);
+border-color:rgba(255,255,255,.22);
+}
+.hard-option:disabled{cursor:default;opacity:.7}
+.hard-option.correct{
+background:linear-gradient(135deg,rgba(29,224,194,.25),rgba(46,168,255,.15));
+border-color:#1de0c2;box-shadow:0 0 0 1px #1de0c2 inset;
+opacity:1;
+}
+.hard-option.wrong{
+background:linear-gradient(135deg,rgba(255,94,168,.25),rgba(255,79,163,.15));
+border-color:#ff5ea8;box-shadow:0 0 0 1px #ff5ea8 inset;
+opacity:1;
+}
+
+/* ---------- СООТВЕТСТВИЕ ---------- */
+.match-board{
+display:grid;grid-template-columns:1fr 1fr;gap:14px;
+margin-bottom:8px;
+}
+.match-col{display:flex;flex-direction:column;gap:10px}
+.match-item{
+padding:14px 16px;border-radius:16px;
+background:rgba(255,255,255,.055);
+border:1px solid rgba(255,255,255,.1);
+color:#eef1fa;font-size:13.5px;font-weight:500;line-height:1.4;
+cursor:pointer;font-family:inherit;text-align:left;
+transition:transform .25s,background .25s,border-color .25s,box-shadow .25s;
+-webkit-tap-highlight-color:transparent;
+min-height:56px;display:flex;align-items:center;
+}
+.match-item:hover:not(.matched){
+transform:translateY(-2px);
+background:rgba(255,255,255,.1);
+border-color:rgba(255,255,255,.22);
+}
+.match-item.selected{
+background:linear-gradient(135deg,rgba(109,123,255,.3),rgba(176,107,255,.2));
+border-color:#6d7bff;box-shadow:0 0 0 1px #6d7bff inset;
+}
+.match-item.matched{
+background:linear-gradient(135deg,rgba(29,224,194,.2),rgba(46,168,255,.1));
+border-color:#1de0c2;box-shadow:0 0 0 1px #1de0c2 inset;
+cursor:default;opacity:.75;
+}
+.match-item.wrong{
+animation:shake .4s ease;
+background:linear-gradient(135deg,rgba(255,94,168,.25),rgba(255,79,163,.15));
+border-color:#ff5ea8;
+}
+@keyframes shake{
+0%,100%{transform:translateX(0)}
+25%{transform:translateX(-6px)}
+75%{transform:translateX(6px)}
+}
+
+/* ---------- ПОБЕДА ---------- */
+.victory{
+text-align:center;padding:30px 20px;
+animation:screenIn .5s ease both;
+}
+.victory h2{
+font-size:28px;font-weight:800;margin-bottom:10px;
+background:linear-gradient(135deg,#1de0c2,#6d7bff);
+-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.victory p{color:#8f97b4;font-size:14px;margin-bottom:20px}
+</style>
+</head>
+<body>
+<div class="bg">
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div class="blob b3"></div>
+<div class="grid-overlay"></div>
+</div>
+
+<div class="stage">
+<!-- СТАРТ -->
+<div id="screen-start" class="screen active">
+<div class="hero">
+<div class="logo-mark">Б</div>
+<h1>Биология<br>в карточках</h1>
+<p>Углеводы, липиды, белки — три режима для запоминания</p>
+<button class="btn btn-primary" onclick="showScreen('menu')">Начать</button>
+</div>
+</div>
+
+<!-- МЕНЮ -->
+<div id="screen-menu" class="screen">
+<div class="menu-head">
+<h2>Выбери режим</h2>
+<p>Три способа проверить знания</p>
+</div>
+<div class="modes">
+<button class="mode m1" onclick="startQuizlet()">
+<div class="mode-ic">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<rect x="3" y="4" width="18" height="16" rx="3"/>
+<path d="M3 10h18"/>
+</svg>
+</div>
+<div class="mode-txt">
+<h3>Quizlet</h3>
+<p>Карточки: вопрос — ответ</p>
+</div>
+<div class="mode-arrow">→</div>
+</button>
+<button class="mode m2" onclick="startHard()">
+<div class="mode-ic">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="12" cy="12" r="9"/>
+<path d="M12 7v5l3 3"/>
+</svg>
+</div>
+<div class="mode-txt">
+<h3>Усложнённый</h3>
+<p>Вопрос и 3 варианта · 15 секунд</p>
+</div>
+<div class="mode-arrow">→</div>
+</button>
+<button class="mode m3" onclick="startMatch()">
+<div class="mode-ic">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+</svg>
+</div>
+<div class="mode-txt">
+<h3>Соответствие</h3>
+<p>Соедини термин и определение</p>
+</div>
+<div class="mode-arrow">→</div>
+</button>
+</div>
+<div style="text-align:center; margin-top:24px;">
+<button class="btn btn-ghost" onclick="showScreen('start')">← Назад</button>
+</div>
+</div>
+
+<!-- QUIZLET -->
+<div id="screen-quizlet" class="screen">
+<div class="game-head">
+<button class="back-btn" onclick="showScreen('menu')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+Назад
+</button>
+<div class="progress-wrap">
+<div class="progress-bar"><div class="progress-fill" id="quizlet-progress"></div></div>
+<div class="counter" id="quizlet-counter">1 / 51</div>
+</div>
+</div>
+<div class="card-slide">
+<div class="card" id="quizlet-card" onclick="flipCard()">
+<div class="card-face card-front">
+<div class="badge">Вопрос</div>
+<div id="quizlet-term">...</div>
+<div class="hint">Нажми, чтобы перевернуть</div>
+</div>
+<div class="card-face card-back">
+<div class="badge">Ответ</div>
+<div id="quizlet-def">...</div>
+</div>
+</div>
+</div>
+<div class="controls">
+<button class="btn btn-ghost" onclick="prevQuizlet()">← Назад</button>
+<button class="btn btn-ghost" onclick="nextQuizlet()">Вперёд →</button>
+</div>
+</div>
+
+<!-- УСЛОЖНЁННЫЙ -->
+<div id="screen-hard" class="screen">
+<div class="game-head">
+<button class="back-btn" onclick="showScreen('menu')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+Назад
+</button>
+<div class="progress-wrap">
+<div class="progress-bar"><div class="progress-fill" id="hard-progress"></div></div>
+<div class="counter" id="hard-counter">1 / 51</div>
+</div>
+</div>
+<div class="hard-question" id="hard-question">...</div>
+<div class="timer-bar"><div class="timer-fill" id="hard-timer"></div></div>
+<div class="hard-options" id="hard-options"></div>
+</div>
+
+<!-- СООТВЕТСТВИЕ -->
+<div id="screen-match" class="screen">
+<div class="game-head">
+<button class="back-btn" onclick="showScreen('menu')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+Назад
+</button>
+<div class="progress-wrap">
+<div class="progress-bar"><div class="progress-fill" id="match-progress"></div></div>
+<div class="counter" id="match-counter">0 / 5</div>
+</div>
+</div>
+<div class="match-board">
+<div class="match-col" id="match-left"></div>
+<div class="match-col" id="match-right"></div>
+</div>
+<div style="text-align:center; margin-top:20px;">
+<button class="btn btn-ghost" onclick="startMatch()">Новая игра</button>
+</div>
+</div>
+</div>
+
+<script>
+/* ============================================================
+ДАННЫЕ
+============================================================ */
+const TERMS = [
+{ term: "Биополимеры", def: "Органические соединения, входящие в состав клеток живых организмов." },
+{ term: "Полимер", def: "Длинная цепь, в которой повторяющимся звеном является простое вещество — мономер." },
+{ term: "Регулярные полимеры", def: "Полимеры, в молекуле которых группа мономеров периодически повторяется." },
+{ term: "Нерегулярные полимеры", def: "Полимеры, в которых нет видимой закономерности в повторяемости мономеров. Примеры: белки и нуклеиновые кислоты." },
+{ term: "Углеводы", def: "Органические соединения, состоящие из углерода, водорода и кислорода; в большинстве случаев выражаются общей формулой Cn(H₂O)m." },
+{ term: "Классификация углеводов", def: "Моносахариды, олигосахариды, полисахариды." },
+{ term: "Моносахариды", def: "Простые сахара. В зависимости от числа атомов углерода: триозы (3), тетрозы (4), пентозы (5), гексозы (6), гептозы (7). Наиболее распространены пентозы и гексозы." },
+{ term: "Пентозы", def: "Моносахариды с 5 атомами углерода: рибоза и дезоксирибоза. Входят в состав нуклеотидов РНК и ДНК соответственно." },
+{ term: "Глюкоза (виноградный сахар)", def: "C₆H₁₂O₆. α- и β-глюкоза: у α-глюкозы OH при C1 под плоскостью кольца, у β-глюкозы над. Самый распространённый моносахарид, источник энергии, мономер олиго- и полисахаридов, компонент крови." },
+{ term: "Фруктоза (фруктовый сахар)", def: "Слаще глюкозы. Содержится в мёде и фруктах. Мономер олиго- и полисахаридов." },
+{ term: "Галактоза", def: "Входит в состав некоторых олиго- и полисахаридов." },
+{ term: "Химические свойства моносахаридов", def: "Растворимы в воде, кристаллизуются, сладкие на вкус." },
+{ term: "Олигосахариды", def: "Углеводы, образующиеся в результате реакции конденсации между несколькими молекулами моносахаридов (от 2 до 10). Различают дисахариды, трисахариды и т.д." },
+{ term: "Сахароза (тростниковый или свекловичный сахар)", def: "Дисахарид, глюкоза + фруктоза. Содержится в тканях растений, продукт питания человека." },
+{ term: "Мальтоза (солодовый сахар)", def: "Дисахарид, глюкоза + глюкоза. Присутствует в прорастающих семенах злаков." },
+{ term: "Лактоза (молочный сахар)", def: "Дисахарид, глюкоза + галактоза. Присутствует в молоке всех млекопитающих." },
+{ term: "Химические свойства олигосахаридов", def: "Те же, что у моносахаридов, но по мере увеличения числа остатков моносахаридов эти свойства уменьшаются." },
+{ term: "Гликозидная связь", def: "Связь, образующаяся между двумя моносахаридами." },
+{ term: "Полисахариды", def: "Углеводы, образующиеся в результате реакции поликонденсации множества молекул моносахаридов (несколько десятков и более). Свойства: несладкие, не кристаллизуются, нерастворимы в воде." },
+{ term: "Крахмал", def: "Полимер, мономер α-глюкоза. Основной резервный углевод растений. Продукт фотосинтеза. Накапливается в клубнях, луковицах, корневищах, семенах. Основной углевод пищи человека." },
+{ term: "Гликоген", def: "Полимер, мономер α-глюкоза. Цепочки ветвятся сильнее. Резервный углевод животных. Накапливается в печени и мышцах. Источник глюкозы." },
+{ term: "Целлюлоза", def: "Полимер, мономер β-глюкоза. Цепочки не ветвятся. Основной структурный компонент клеточных стенок растений. Не расщепляется пищевыми соками человека и животных, так как нет фермента целлюлазы." },
+{ term: "Инулин", def: "Полимер, мономер фруктоза. Резервный углевод растений семейства Сложноцветные." },
+{ term: "Хитин", def: "Входит в состав клеточных стенок некоторых простейших и грибов." },
+{ term: "Функции углеводов", def: "1. Энергетическая — 1 г = 17,6 кДж. 2. Структурная — целлюлоза (растения), муреин (бактерии), хитин (грибы, членистоногие). 3. Запасающая — гликоген у животных и грибов, крахмал и инулин у растений. 4. Защитная — слизи предохраняют кишечник и бронхи от механических повреждений." },
+{ term: "Липиды", def: "Не имеют единой химической характеристики. Не растворимы в воде. Извлекаются органическими растворителями: эфиром, хлороформом, бензолом." },
+{ term: "Простые липиды", def: "Сложные эфиры высших жирных кислот и трёхатомного спирта глицерина." },
+{ term: "Жирные кислоты", def: "Имеют одинаковую группу — карбоксильную (–COOH) — и радикал, которым отличаются." },
+{ term: "Радикал", def: "Цепочка из разного количества (14–22) групп CH₂, с одной или несколькими двойными связями." },
+{ term: "Насыщенные и ненасыщенные жирные кислоты", def: "Без двойных связей — насыщенная, с двойными — ненасыщенная." },
+{ term: "Триглицериды (жиры)", def: "При образовании каждая из трёх гидроксильных групп глицерина вступает в реакцию конденсации с жирными кислотами, образуя три сложноэфирные связи. Если преобладают насыщенные — твёрдые при 20°C, характерны для животных клеток." },
+{ term: "Ненасыщенные триглицериды", def: "Если преобладают ненасыщенные жирные кислоты, то при 20°C жидкие (масла), характерны для растительных клеток." },
+{ term: "Сложные липиды", def: "а) Фосфолипиды — триглицериды, у которых один остаток жирной кислоты замещён на остаток фосфорной кислоты. Участвуют в образовании клеточной мембраны. б) Гликолипиды — триглицериды, у которых остаток жирной кислоты замещён на остаток углевода." },
+{ term: "Липопротеины", def: "Комплексные вещества, образующиеся при соединении липидов и белков." },
+{ term: "Липоиды (жироподобные вещества)", def: "Каротиноиды (фотосинтетические пигменты), стероидные гормоны, гиббереллины, жирорастворимые витамины, холестерин, камфора и другие." },
+{ term: "Функции липидов", def: "1. Энергетическая — 1 г = 38,9 кДж. 2. Структурная — фосфолипиды, гликолипиды, липопротеины образуют клеточную мембрану. 3. Запасающая — жиры и масла. 4. Защитная — прослойки жира, жировые капсулы (амортизация), воск (отталкивает воду), теплоизоляционная. 5. Регуляторная — стероидные гормоны регулируют обмен веществ. 6. Источник метаболической воды — окисление 1 кг жира = 1,1 кг воды. 7. Каталитическая — витамины A, D, E, K." },
+{ term: "Белки", def: "Высокомолекулярные органические соединения, состоящие из остатков α-аминокислот. Элементы: C, O, H, N, S. Комплексы с P, Fe, Zn, S. Большая молекулярная масса." },
+{ term: "Белки как полимеры", def: "Непериодические полимеры, мономеры — α-аминокислоты. 20 видов α-аминокислот." },
+{ term: "Классификация аминокислот", def: "Заменимые — синтезируются в организме. Незаменимые — не синтезируются, поступают с пищей (животные). Растения синтезируют все." },
+{ term: "Классификация белков по составу аминокислот", def: "Полноценные — содержат все необходимые аминокислоты (животные). Неполноценные — некоторые аминокислоты отсутствуют (растительные)." },
+{ term: "Заменимые аминокислоты", def: "10: глицин, аланин, серин, аспарагиновая кислота, аспарагин, глутаминовая кислота, глутамин, пролин, цистеин, тирозин." },
+{ term: "Незаменимые аминокислоты", def: "9: валин, лейцин, изолейцин, треонин, лизин, метионин, фенилаланин, триптофан, гистидин." },
+{ term: "Классификация белков по составу", def: "Простые (протеины) — только аминокислоты. Сложные (протеиды) — с простетической группой." },
+{ term: "Простетическая группа", def: "Металлы (металлопротеины), углеводы (гликопротеины), липиды (липопротеины), нуклеиновые кислоты (нуклеопротеины)." },
+{ term: "Общая формула аминокислоты", def: "NH₂–CH(R)–COOH: аминогруппа, радикал и карбоксильная группа при одном атоме углерода." },
+{ term: "Все аминокислоты содержат", def: "Карбоксильную группу, аминогруппу, радикал." },
+{ term: "Классификация аминокислот по количеству групп", def: "Нейтральные — одна COOH и одна NH₂. Основные — больше одной NH₂. Кислые — больше одной COOH." },
+{ term: "Аминокислоты как амфотерные соединения", def: "Проявляют свойства и кислот, и оснований." },
+{ term: "Пептиды", def: "Органические вещества, состоящие из остатков аминокислот, соединённых пептидной связью." },
+{ term: "Пептидная связь", def: "Образуется при взаимодействии аминогруппы одной аминокислоты с карбоксильной группой другой." },
+{ term: "Классификация пептидов", def: "2 аминокислоты — дипептид, 3 — трипептид, и так далее до полипептида." }
+];
+
+/* ============================================================
+УТИЛИТЫ
+============================================================ */
+function showScreen(id) {
+document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+document.getElementById('screen-' + id).classList.add('active');
+}
+
+function shuffle(arr) {
+const a = [...arr];
+for (let i = a.length - 1; i > 0; i--) {
+const j = Math.floor(Math.random() * (i + 1));
+[a[i], a[j]] = [a[j], a[i]];
+}
+return a;
+}
+
+/* ============================================================
+QUIZLET
+============================================================ */
+let quizletIndex = 0;
+
+function startQuizlet() {
+quizletIndex = 0;
+showScreen('quizlet');
+updateQuizlet();
+}
+
+function updateQuizlet() {
+const item = TERMS[quizletIndex];
+document.getElementById('quizlet-term').textContent = item.term;
+document.getElementById('quizlet-def').textContent = item.def;
+document.getElementById('quizlet-counter').textContent = (quizletIndex + 1) + ' / ' + TERMS.length;
+document.getElementById('quizlet-progress').style.width = ((quizletIndex + 1) / TERMS.length * 100) + '%';
+document.getElementById('quizlet-card').classList.remove('flipped');
+}
+
+function flipCard() {
+document.getElementById('quizlet-card').classList.toggle('flipped');
+}
+
+function nextQuizlet() {
+if (quizletIndex < TERMS.length - 1) {
+quizletIndex++;
+updateQuizlet();
+}
+}
+
+function prevQuizlet() {
+if (quizletIndex > 0) {
+quizletIndex--;
+updateQuizlet();
+}
+}
+
+/* ============================================================
+УСЛОЖНЁННЫЙ
+============================================================ */
+let hardQuestions = [];
+let hardIndex = 0;
+let hardTimer = null;
+let hardTimeLeft = 15;
+let hardLocked = false;
+
+function startHard() {
+hardQuestions = shuffle(TERMS.map(item => {
+const others = TERMS.filter(t => t.term !== item.term).map(t => t.term);
+const shuffledOthers = shuffle(others);
+const options = shuffle([item.term, shuffledOthers[0], shuffledOthers[1]]);
+return {
+question: item.def,
+correct: item.term,
+options: options
+};
+}));
+hardIndex = 0;
+showScreen('hard');
+renderHardQuestion();
+}
+
+function renderHardQuestion() {
+if (hardIndex >= hardQuestions.length) {
+// Конец — возврат в меню
+showScreen('menu');
+return;
+}
+hardLocked = false;
+const q = hardQuestions[hardIndex];
+document.getElementById('hard-question').textContent = q.question;
+document.getElementById('hard-counter').textContent = (hardIndex + 1) + ' / ' + hardQuestions.length;
+document.getElementById('hard-progress').style.width = ((hardIndex + 1) / hardQuestions.length * 100) + '%';
+
+const optionsContainer = document.getElementById('hard-options');
+optionsContainer.innerHTML = '';
+q.options.forEach(opt => {
+const btn = document.createElement('button');
+btn.className = 'hard-option';
+btn.textContent = opt;
+btn.onclick = () => selectHardOption(btn, opt === q.correct);
+optionsContainer.appendChild(btn);
+});
+
+// Таймер
+hardTimeLeft = 15;
+const timerFill = document.getElementById('hard-timer');
+timerFill.style.width = '100%';
+clearInterval(hardTimer);
+hardTimer = setInterval(() => {
+hardTimeLeft -= 0.1;
+if (hardTimeLeft <= 0) {
+hardTimeLeft = 0;
+clearInterval(hardTimer);
+if (!hardLocked) {
+// Время вышло — засчитываем как неправильный
+hardLocked = true;
+document.querySelectorAll('.hard-option').forEach(b => {
+b.disabled = true;
+if (b.textContent === q.correct) b.classList.add('correct');
+});
+setTimeout(() => {
+hardIndex++;
+renderHardQuestion();
+}, 1200);
+}
+}
+timerFill.style.width = (hardTimeLeft / 15 * 100) + '%';
+}, 100);
+}
+
+function selectHardOption(btn, isCorrect) {
+if (hardLocked) return;
+hardLocked = true;
+clearInterval(hardTimer);
+const q = hardQuestions[hardIndex];
+document.querySelectorAll('.hard-option').forEach(b => {
+b.disabled = true;
+if (b.textContent === q.correct) b.classList.add('correct');
+});
+if (!isCorrect) {
+btn.classList.add('wrong');
+}
+setTimeout(() => {
+hardIndex++;
+renderHardQuestion();
+}, 1200);
+}
+
+/* ============================================================
+СООТВЕТСТВИЕ
+============================================================ */
+let matchSelectedLeft = null;
+let matchMatched = 0;
+let matchTotal = 0;
+
+function startMatch() {
+// Выбираем 5 случайных пар
+const shuffledTerms = shuffle(TERMS);
+const pairs = shuffledTerms.slice(0, 5);
+matchTotal = pairs.length;
+matchMatched = 0;
+matchSelectedLeft = null;
+
+const leftCol = document.getElementById('match-left');
+const rightCol = document.getElementById('match-right');
+leftCol.innerHTML = '';
+rightCol.innerHTML = '';
+
+// Левая колонка — термины (перемешаны)
+const leftItems = shuffle(pairs.map(p => p.term));
+leftItems.forEach(term => {
+const div = document.createElement('div');
+div.className = 'match-item';
+div.textContent = term;
+div.dataset.term = term;
+div.onclick = () => onMatchLeftClick(div);
+leftCol.appendChild(div);
+});
+
+// Правая колонка — определения (перемешаны)
+const rightItems = shuffle(pairs.map(p => ({ term: p.term, def: p.def })));
+rightItems.forEach(item => {
+const div = document.createElement('div');
+div.className = 'match-item';
+div.textContent = item.def;
+div.dataset.term = item.term;
+div.onclick = () => onMatchRightClick(div);
+rightCol.appendChild(div);
+});
+
+document.getElementById('match-counter').textContent = '0 / ' + matchTotal;
+document.getElementById('match-progress').style.width = '0%';
+
+showScreen('match');
+}
+
+function onMatchLeftClick(el) {
+if (el.classList.contains('matched')) return;
+// Снимаем выделение с других
+document.querySelectorAll('#match-left .match-item').forEach(i => i.classList.remove('selected'));
+el.classList.add('selected');
+matchSelectedLeft = el;
+}
+
+function onMatchRightClick(el) {
+if (el.classList.contains('matched')) return;
+if (!matchSelectedLeft) return;
+
+const leftTerm = matchSelectedLeft.dataset.term;
+const rightTerm = el.dataset.term;
+
+if (leftTerm === rightTerm) {
+// Совпадение
+matchSelectedLeft.classList.remove('selected');
+matchSelectedLeft.classList.add('matched');
+el.classList.add('matched');
+matchSelectedLeft = null;
+matchMatched++;
+document.getElementById('match-counter').textContent = matchMatched + ' / ' + matchTotal;
+document.getElementById('match-progress').style.width = (matchMatched / matchTotal * 100) + '%';
+
+if (matchMatched === matchTotal) {
+setTimeout(() => {
+document.getElementById('match-left').innerHTML = '';
+document.getElementById('match-right').innerHTML = '';
+const victory = document.createElement('div');
+victory.className = 'victory';
+victory.style.gridColumn = '1 / -1';
+victory.innerHTML = '<h2>Победа! 🎉</h2><p>Все пары найдены</p><button class="btn btn-primary" onclick="startMatch()">Играть снова</button>';
+document.querySelector('.match-board').appendChild(victory);
+}, 400);
+}
+} else {
+// Несовпадение
+el.classList.add('wrong');
+matchSelectedLeft.classList.add('wrong');
+const leftEl = matchSelectedLeft;
+setTimeout(() => {
+el.classList.remove('wrong');
+leftEl.classList.remove('wrong', 'selected');
+}, 500);
+matchSelectedLeft = null;
+}
+}
+</script>
+</body>
+</html>
